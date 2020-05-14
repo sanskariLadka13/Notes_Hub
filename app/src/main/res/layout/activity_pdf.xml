@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <TextView
+        android:id="@+id/tv_header"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#C6C3CD"
+        android:fontFamily="@font/lemonfont"
+        android:gravity="center"
+        android:text="View PDF"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused"
+        android:textSize="24sp"></TextView>
+
+    <com.github.barteksc.pdfviewer.PDFView
+        android:id="@+id/PDFview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/tv_header" />
+
+</RelativeLayout>

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "827310843502",
+    "firebase_url": "https://myproject-8645a.firebaseio.com",
+    "project_id": "myproject-8645a",
+    "storage_bucket": "myproject-8645a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:827310843502:android:0f9b96a53f36c21e99a87f",
+        "android_client_info": {
+          "package_name": "com.mericompany.myproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "827310843502-0k61u0lqqm9o72s7aponcka9878nkrro.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAd4kdjknoczaeYU2t0vgbRhedYnEAuwMM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "827310843502-0k61u0lqqm9o72s7aponcka9878nkrro.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
