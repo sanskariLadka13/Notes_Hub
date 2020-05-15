@@ -34,14 +34,24 @@
             android:layout_height="20dp"
             android:text="TextView" />
 
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
         <ProgressBar
             android:id="@+id/progressBarDownload"
             style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp"
+            android:layout_width="150dp"
             android:visibility="invisible"
             android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/downloadPercent"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:textAlignment="textEnd" />
+        </LinearLayout>
 
 
     </LinearLayout>

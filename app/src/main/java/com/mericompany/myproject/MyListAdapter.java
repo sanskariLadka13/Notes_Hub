@@ -2,6 +2,7 @@ package com.mericompany.myproject;
 
 import android.app.Activity;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +37,6 @@ public class MyListAdapter extends ArrayAdapter<String> {
     public MyListAdapter(Activity context, ArrayList<String> title,ArrayList<String> subTitle, Integer pdfIcon) {
         super(context, R.layout.customized, title);
         // TODO Auto-generated constructor stub
-
         this.context=context;
         this.title=title;
         this.subTitle=subTitle;
@@ -46,26 +46,35 @@ public class MyListAdapter extends ArrayAdapter<String> {
 
 
     public View getView(int position, View view, ViewGroup parent) {
+
         LayoutInflater inflater=context.getLayoutInflater();
-        View rowView=inflater.inflate(R.layout.customized, null,true);
+        View rowView=view;//inflater.inflate(R.layout.customized, null,true);
 
-        TextView titleText = rowView.findViewById(R.id.title);
-        ImageView imageView = rowView.findViewById(R.id.icon);
-        TextView subtitleText = rowView.findViewById(R.id.subtitle);
-        ImageView downloadIconView = rowView.findViewById(R.id.downloadIcon);
+        if(rowView == null) {
+            rowView=inflater.inflate(R.layout.customized, null,true);
+            TextView titleText = rowView.findViewById(R.id.title);
+            ImageView imageView = rowView.findViewById(R.id.icon);
+            TextView subtitleText = rowView.findViewById(R.id.subtitle);
+            ImageView downloadIconView = rowView.findViewById(R.id.downloadIcon);
 
-        if(isDownloadIcon == true) {
-            downloadIconView.setVisibility(View.VISIBLE);
-            downloadIconView.setImageResource(downloadIcon);
+            if (isDownloadIcon == true) {
+                downloadIconView.setVisibility(View.VISIBLE);
+                downloadIconView.setImageResource(downloadIcon);
+            } else {
+                downloadIconView.setVisibility(View.INVISIBLE);
+            }
+            titleText.setText(title.get(position));
+            imageView.setImageResource(pdfIcon);
+            subtitleText.setText(subTitle.get(position));
         }
         else {
-            downloadIconView.setVisibility(View.INVISIBLE);
+            Log.i("errrrrr","ffffffffffffffffffffffffffffffffffffffff");
         }
-        titleText.setText(title.get(position));
-        imageView.setImageResource(pdfIcon);
-        subtitleText.setText(subTitle.get(position));
-
         return rowView;
 
     };
+
+    private static class ViewHolder{
+        
+    }
 }

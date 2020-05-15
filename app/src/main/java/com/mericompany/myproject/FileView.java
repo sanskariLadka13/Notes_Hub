@@ -16,7 +16,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -28,16 +27,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.io.File;
 import java.util.ArrayList;
 
-public class FileView extends AppCompatActivity{
+public class FileView extends AppCompatActivity {
 
     ArrayList<String> filePath = new ArrayList<>();
     ArrayList<String> fileName = new ArrayList<>();
     ArrayList<String> fileSize = new ArrayList<String>();
 
-
-    ArrayAdapter<String> branchAdapter;
-    ArrayAdapter<String> batchAdapter;
-    ArrayAdapter<String> semAdapter;
+    MySpinnerAdapter branchAdapter,batchAdapter,semAdapter;
 
     Spinner batchSpinner;
     Spinner semSpinner;
@@ -53,6 +49,8 @@ public class FileView extends AppCompatActivity{
     TextView noFileText;
     ListView list;
     ImageView noFileFace;
+    ImageView gangsterImage;
+    TextView gangsterText;
 
     Integer image;
 
@@ -104,22 +102,170 @@ public class FileView extends AppCompatActivity{
 
         mAuth = FirebaseAuth.getInstance();
 
+        noFileText = findViewById(R.id.noFileText);
+        noFileFace = findViewById(R.id.noFileFace);
+        gangsterImage = findViewById(R.id.gangsterImage);
+        gangsterText = findViewById(R.id.gangsterText);
+        list = findViewById(R.id.list);
+        image = R.drawable.new_pdf_icon;
+
+        setSpinnerList();
+        setupSpinner();
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent pdfIntent = new Intent(getApplicationContext(),PdfReader.class);
+                pdfIntent.putExtra("filePath",filePath.get(i));
+                startActivity(pdfIntent);
+            }
+        });
+
+        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ImageView delete = view.findViewById(R.id.downloadIcon);
+                delete.setVisibility(View.VISIBLE);
+                delete.setImageResource(R.drawable.complete);
+                File directory = new File(filePath.get(i));
+                //directory.getAbsoluteFile().delete();
+                return true;
+            }
+        });
+
+    }
+
+    public void onClickLoadFile(View view){
+        setNoFileVisibility(false);
+        fileName.clear();
+        filePath.clear();
+        fileSize.clear();
+        adapter=new MyListAdapter(this, fileName, fileSize,image);
+        setGangstaMessage(false,"");
+        String warning;
+        if(selectedBatch == batch.get(0)) {
+            warning = "Please select any batch...";
+            Toast.makeText(this, warning, Toast.LENGTH_SHORT).show();
+            setGangstaMessage(true,warning);
+        }
+        else if(selectedSem == sem.get(0)) {
+            warning = "Please select any sem...";
+            Toast.makeText(this, warning, Toast.LENGTH_SHORT).show();
+            setGangstaMessage(true,warning);
+        }
+        else if(selectedBranch == branch.get(0)){
+            warning = "Please select any branch...";
+            Toast.makeText(this, warning, Toast.LENGTH_SHORT).show();
+            setGangstaMessage(true,warning);
+        }
+        else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
+            }
+            else {
+                showFilesFromStorage();
+            }
+        }
+    }
+
+    public void showFilesFromStorage(){
+
+        String path = Environment.getExternalStorageDirectory().toString()+"/" +".uploads/"+ selectedBatch + "/" + selectedSem + "/" + selectedBranch;
+        Log.d("Files", "Path: " + path);
+
+        File directory = new File(path);
+        if(directory.exists()) {
+            File[] files = directory.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                Log.d("Files", "FileName: " + files[i].getName());
+                Log.d("Files", "FileName: " + files[i].getAbsolutePath());
+                fileName.add(files[i].getName());
+                filePath.add(files[i].getPath());
+                if((files[i].length()/1048576.0)>1.0) {
+                    fileSize.add(String.format("%.2f", files[i].length() / (1048576.0)) + " MB");
+                }
+                else {
+                    fileSize.add(String.format("%.2f", files[i].length() / (1024.0)) + " KB");
+                }
+            }
+        }
+        else{
+            setNoFileVisibility(true);
+            Toast.makeText(this, "Nothing's there...", Toast.LENGTH_SHORT).show();
+        }
+        ///////////////////////////////////////////////////////////
+        adapter=new MyListAdapter(this, fileName, fileSize,image);
+        list.setAdapter(adapter);
+    }
+
+    public  void setSpinnerList(){
+        // adding branch to the spinner
+        branch.add("Select Branch");
+        branch.add("ECE");
+        branch.add("CSE");
+        branch.add("Civil");
+        branch.add("EE");
+        branch.add("Architecture");
+        branch.add("IMSc");
+        branch.add("Mechanical");
+        //=======//
+        sem.add("Select Sem");
+        sem.add("1st");
+        sem.add("2nd");
+        sem.add("3rd");
+        sem.add("4th");
+        sem.add("5th");
+        sem.add("6th");
+        sem.add("7th");
+        sem.add("8th");
+        sem.add("9th");
+        sem.add("10th");
+        //====//
+        batch.add("Select Batch");
+        batch.add("2k16");
+        batch.add("2k17");
+        batch.add("2k18");
+        batch.add("2k19");
+        batch.add("2k20");
+        batch.add("2k21");
+        //==//
+
+
+    }
+    public void setNoFileVisibility(boolean visible){
+        if(visible){
+            noFileText.setVisibility(View.VISIBLE);
+            noFileFace.setVisibility(View.VISIBLE);
+        }
+        else {
+            noFileText.setVisibility(View.INVISIBLE);
+            noFileFace.setVisibility(View.INVISIBLE);
+
+        }
+    }
+    public void setGangstaMessage(boolean visible,String message){
+        if(visible){
+            gangsterImage.setVisibility(View.VISIBLE);
+            gangsterText.setVisibility(View.VISIBLE);
+            gangsterText.setText(message);
+        }
+        else {
+            gangsterImage.setVisibility(View.INVISIBLE);
+            gangsterText.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    public void setupSpinner(){
+
         batchSpinner = findViewById(R.id.batchFileSpinner);
         semSpinner = findViewById(R.id.semFileSpinner);
         branchSpinner = findViewById(R.id.branchFileSpinner);
 
-        setSpinner();
-
-        noFileText = findViewById(R.id.noFileText);
-        noFileFace = findViewById(R.id.noFileFace);
-        noFileFace.setVisibility(View.INVISIBLE);
-        noFileText.setVisibility(View.INVISIBLE);
-        list = findViewById(R.id.list);
-        image = R.drawable.new_pdf_icon;
-
-        batchAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,batch);
-        branchAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,branch);
-        semAdapter =  new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,sem);
+        batchAdapter   = new MySpinnerAdapter(getApplicationContext(),batch);
+        branchAdapter = new MySpinnerAdapter(getApplicationContext(),branch);
+        semAdapter = new MySpinnerAdapter(getApplicationContext(),sem);
 
         semSpinner.setAdapter(semAdapter);
         branchSpinner.setAdapter(branchAdapter);
@@ -159,107 +305,6 @@ public class FileView extends AppCompatActivity{
             public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
-
-
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent pdfIntent = new Intent(getApplicationContext(),PdfReader.class);
-                pdfIntent.putExtra("filePath",filePath.get(i));
-                startActivity(pdfIntent);
-            }
-        });
-
-    }
-
-    public void onClickLoadFile(View view){
-        if(selectedBatch == batch.get(0))
-            Toast.makeText(this, "Please select any batch...", Toast.LENGTH_SHORT).show();
-        else if(selectedSem == sem.get(0))
-            Toast.makeText(this, "Please select any sem...", Toast.LENGTH_SHORT).show();
-        else if(selectedBranch == branch.get(0))
-            Toast.makeText(this, "Please select any branch...", Toast.LENGTH_SHORT).show();
-        else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
-            }
-            else {
-                showFilesFromStorage();
-            }
-        }
-    }
-
-    public void showFilesFromStorage(){
-        noFileText.setVisibility(View.INVISIBLE);
-        noFileFace.setVisibility(View.INVISIBLE);
-        fileName.clear();
-        filePath.clear();
-        fileSize.clear();
-        adapter=new MyListAdapter(this, fileName, fileSize,image);
-
-        String path = Environment.getExternalStorageDirectory().toString()+"/" +".uploads/"+ selectedBatch + "/" + selectedSem + "/" + selectedBranch;
-        Log.d("Files", "Path: " + path);
-
-        File directory = new File(path);
-        if(directory.exists()) {
-            File[] files = directory.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                Log.d("Files", "FileName: " + files[i].getName());
-                Log.d("Files", "FileName: " + files[i].getAbsolutePath());
-                fileName.add(files[i].getName());
-                filePath.add(files[i].getPath());
-                // need to corrct hte decimal places...
-                if((files[i].length()/1048576.0)>1.0) {
-                    fileSize.add(String.format("%.2f", files[i].length() / (1048576.0)) + " MB");
-                }
-                else {
-                    fileSize.add(String.format("%.2f", files[i].length() / (1024.0)) + " KB");
-                }
-            }
-        }
-        else{
-            noFileText.setVisibility(View.VISIBLE);
-            noFileFace.setVisibility(View.VISIBLE);
-            Toast.makeText(this, "Nothing's there...", Toast.LENGTH_SHORT).show();
-        }
-        ///////////////////////////////////////////////////////////
-        adapter=new MyListAdapter(this, fileName, fileSize,image);
-        list.setAdapter(adapter);
-    }
-    public  void setSpinner(){
-        // adding branch to the spinner
-        branch.add("Select Branch");
-        branch.add("ECE");
-        branch.add("CSE");
-        branch.add("Civil");
-        branch.add("EE");
-        branch.add("Architecture");
-        branch.add("IMSc");
-        branch.add("Mechanical");
-        //=======//
-        sem.add("Select Sem");
-        sem.add("1st");
-        sem.add("2nd");
-        sem.add("3rd");
-        sem.add("4th");
-        sem.add("5th");
-        sem.add("6th");
-        sem.add("7th");
-        sem.add("8th");
-        sem.add("9th");
-        sem.add("10th");
-        //====//
-        batch.add("Select Batch");
-        batch.add("2k16");
-        batch.add("2k17");
-        batch.add("2k18");
-        batch.add("2k19");
-        batch.add("2k20");
-        batch.add("2k21");
-        //==//
-
 
     }
 

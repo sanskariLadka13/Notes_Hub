@@ -8,7 +8,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -24,6 +26,9 @@ public class DownloadingTask extends AsyncTask<String, Void, Void> {
     Context context;
     String directory ,fileName;
     ProgressBar progressBar;
+    TextView downloadPercent;
+    ImageView downloadIcon;
+
     View view;
 
     int percent = 0;
@@ -34,6 +39,8 @@ public class DownloadingTask extends AsyncTask<String, Void, Void> {
         fileName = DataActivity.getFileName();
         this.view = view;
         progressBar = view.findViewById(R.id.progressBarDownload);
+        downloadPercent = view.findViewById(R.id.downloadPercent);
+        downloadIcon = view.findViewById(R.id.downloadIcon);
     }
 
     File apkStorage = null;
@@ -44,6 +51,8 @@ public class DownloadingTask extends AsyncTask<String, Void, Void> {
         super.onPreExecute();
         progressBar.setVisibility(View.VISIBLE);
         progressBar.setProgress(0);
+        downloadPercent.setText("0 %");
+        downloadIcon.setImageResource(R.drawable.pause);
     }
 
     @Override
@@ -51,6 +60,8 @@ public class DownloadingTask extends AsyncTask<String, Void, Void> {
         try {
             if (outputFile != null) {
                 progressBar.setVisibility(View.INVISIBLE);
+                downloadPercent.setVisibility(View.GONE);
+                downloadIcon.setImageResource(R.drawable.complete);
                 Toast.makeText(context, "DownloadSuccess", Toast.LENGTH_SHORT).show();
 
             } else {
@@ -61,6 +72,8 @@ public class DownloadingTask extends AsyncTask<String, Void, Void> {
 
                     }
                 }, 3000);
+                view.setClickable(true);
+                downloadIcon.setImageResource(R.drawable.download_failed);
                 Toast.makeText(context, "Download failed", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
@@ -98,7 +111,6 @@ public class DownloadingTask extends AsyncTask<String, Void, Void> {
             if (new CheckForSDCard().isSDCardPresent()) {
                 apkStorage = new File(
                         Environment.getExternalStorageDirectory(), directory);
-                               // "uploads");
             } else {
                 Toast.makeText(context, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
             }
@@ -132,9 +144,8 @@ public class DownloadingTask extends AsyncTask<String, Void, Void> {
                 downloadedSize += len1;
                 //Log.e("Progress:", "downloadedSize:" + Math.abs(downloadedSize * 100 / totalSize));
                 percent = Math.abs(downloadedSize * 100 / totalSize);
-                //*** need to fix the process dialog box probem...
-                //progressDialog.setMessage("Downloading... "+ percent + "%");
                 progressBar.setProgress(percent);
+                //downloadPercent.setText(percent+"%");
                 Log.i("downloading ","Downloading ... "+ percent + "%");
             }
 

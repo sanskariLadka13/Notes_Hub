@@ -15,7 +15,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -43,18 +44,19 @@ public class ChooseActivity extends AppCompatActivity {
     StorageReference mStorageRefrence;
     DatabaseReference mDatabaseRefrence;
 
-    ProgressBar progressBar ,uploadProgress;
+    ProgressBar uploadProgress;
     TextView fileNameView;
     TextView showName,uploadPercent;
 
-    Button uploadButton;
+    ImageView uploadButton;
+    ImageButton chooseButton;
 
     Spinner branchSpinner,semSpinner,batchSpinner,typeSpinner;
 
-    ArrayAdapter<String> branchAdapter;
-    ArrayAdapter<String> batchAdapter;
-    ArrayAdapter<String> semAdapter;
-    ArrayAdapter<String> typeAdapter;
+    MySpinnerAdapter branchAdapter;
+    MySpinnerAdapter batchAdapter;
+    MySpinnerAdapter semAdapter;
+    MySpinnerAdapter typeAdapter;
     ArrayAdapter<String> nameAdapter;
 
     ArrayList<String> branch = new ArrayList<>();
@@ -90,98 +92,21 @@ public class ChooseActivity extends AppCompatActivity {
 
         fileNameView = findViewById(R.id.fileNameTextView);
         showName = findViewById(R.id.showName);
+        chooseButton = findViewById(R.id.chooseFileButton);
 
         uploadButton = findViewById(R.id.uploadButton);
         uploadProgress = findViewById(R.id.uploadProgress);
         uploadPercent = findViewById(R.id.uploadPercent);
-        progressBar = findViewById(R.id.progressBar);
 
-        progressBar.setVisibility(View.INVISIBLE);
         uploadProgress.setVisibility(View.INVISIBLE);
         uploadPercent.setVisibility(View.INVISIBLE);
 
-        branchSpinner = findViewById(R.id.branchChooseFileSpinner);
-        semSpinner = findViewById(R.id.semChooseFileSpinner);
-        batchSpinner = findViewById(R.id.batchChooseFileSpinner);
-        typeSpinner = findViewById(R.id.typeSpinner);
-
-        setSpinner();
-
-        branchAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item, branch);
-        semAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,sem);
-        batchAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item, batch);
-        typeAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,type);
-
-        branchSpinner.setAdapter(branchAdapter);
-        batchSpinner.setAdapter(batchAdapter);
-        semSpinner.setAdapter(semAdapter);
-        typeSpinner.setAdapter(typeAdapter);
-
-        branchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.i("branch",branch.get(i));
-                intent.putExtra("branch",branch.get(i));
-                selectedBranch = branch.get(i);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-                adapterView.removeView(branchSpinner);
-            }
-        });
-
-        semSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.i("sem",sem.get(i));
-                intent.putExtra("sem",sem.get(i));
-                selectedSem = sem.get(i);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-                adapterView.removeView(semSpinner);
-            }
-        });
-
-        batchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.i("batch",batch.get(i));
-                intent.putExtra("batch",batch.get(i));
-                selectedBatch = batch.get(i);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-            }
-        });
-
-        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                switch (i){
-                    case 1:selectedType = "[Notes]";
-                    break;
-                    case 2:selectedType = "[Ques]";
-                    break;
-                    case 3:selectedType = "[Lab]";
-                    break;
-                    default:selectedType = type.get(0);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
+        setSpinnerList();
+        spinnerSetup();
 
     }
 
-    public  void setSpinner(){
+    public  void setSpinnerList(){
         // adding branch to the spinner
         branch.add("Select Branch");
         branch.add("ECE");
@@ -235,7 +160,6 @@ public class ChooseActivity extends AppCompatActivity {
 
     private void uploadFile(Uri data) {
         final String name = fileNameView.getText().toString() + System.currentTimeMillis() + ".pdf";
-        progressBar.setVisibility(View.VISIBLE);
         uploadProgress.setVisibility(View.VISIBLE);
         uploadPercent.setVisibility(View.VISIBLE);
         uploadProgress.setProgress(0);
@@ -245,10 +169,9 @@ public class ChooseActivity extends AppCompatActivity {
                     @SuppressWarnings("VisibleForTests")
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        progressBar.setVisibility(View.GONE);
                         uploadProgress.setVisibility(View.GONE);
                         uploadPercent.setVisibility(View.GONE);
-                        uploadButton.setClickable(true);
+                        setButtonClickable(true);
 
                         mStorageRefrence.child("uploads").child(selectedBatch).child(selectedSem).child(selectedBranch).child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
@@ -262,7 +185,7 @@ public class ChooseActivity extends AppCompatActivity {
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                uploadButton.setClickable(true);
+                                setButtonClickable(true);
                                 e.printStackTrace();
                             }
                         });
@@ -272,7 +195,7 @@ public class ChooseActivity extends AppCompatActivity {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
-                        uploadButton.setClickable(true);
+                        setButtonClickable(true);
                         Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 })
@@ -316,7 +239,7 @@ public class ChooseActivity extends AppCompatActivity {
         }
         else {
             uploadFile(selectedFile);
-            uploadButton.setClickable(false);
+            setButtonClickable(false);
         }
     }
 
@@ -340,7 +263,94 @@ public class ChooseActivity extends AppCompatActivity {
                 }
         }
     }
-    ///just check
 
-    //again double check
+    public void setButtonClickable(boolean lock){
+
+        showName.setClickable(lock);
+        batchSpinner.setClickable(lock);
+        semSpinner.setClickable(lock);
+        branchSpinner.setClickable(lock);
+        uploadButton.setClickable(lock);
+        chooseButton.setClickable(lock);
+    }
+
+    public void spinnerSetup(){
+        branchSpinner = findViewById(R.id.branchChooseFileSpinner);
+        semSpinner = findViewById(R.id.semChooseFileSpinner);
+        batchSpinner = findViewById(R.id.batchChooseFileSpinner);
+        typeSpinner = findViewById(R.id.typeSpinner);
+
+
+        typeAdapter = new MySpinnerAdapter(getApplicationContext(),type);
+        batchAdapter   = new MySpinnerAdapter(getApplicationContext(),batch);
+        branchAdapter = new MySpinnerAdapter(getApplicationContext(),branch);
+        semAdapter = new MySpinnerAdapter(getApplicationContext(),sem);
+
+        semSpinner.setAdapter(semAdapter);
+        branchSpinner.setAdapter(branchAdapter);
+        batchSpinner.setAdapter(batchAdapter);
+        typeSpinner.setAdapter(typeAdapter);
+
+        branchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.i("branch",branch.get(i));
+                intent.putExtra("branch",branch.get(i));
+                selectedBranch = branch.get(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                adapterView.removeView(branchSpinner);
+            }
+        });
+
+        semSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.i("sem",sem.get(i));
+                intent.putExtra("sem",sem.get(i));
+                selectedSem = sem.get(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                adapterView.removeView(semSpinner);
+            }
+        });
+
+        batchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.i("batch",batch.get(i));
+                intent.putExtra("batch",batch.get(i));
+                selectedBatch = batch.get(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+
+        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                switch (i){
+                    case 1:selectedType = "[Notes]";
+                        break;
+                    case 2:selectedType = "[Ques]";
+                        break;
+                    case 3:selectedType = "[Lab]";
+                        break;
+                    default:selectedType = type.get(0);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+    }
 }
