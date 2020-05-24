@@ -1,9 +1,11 @@
 package com.mericompany.myproject;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
@@ -34,10 +36,9 @@ public class HomeActivity extends AppCompatActivity {
         super.onOptionsItemSelected(item);
 
         switch (item.getItemId()){
-            case R.id.signout_data :
-                mAuth.signOut();
-                Intent loginActivity = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(loginActivity);
+            case R.id.home_help :
+                Intent helpActivity = new Intent(getApplicationContext(), Help.class);
+                startActivity(helpActivity);
                 return true;
             default:
                 return false;
@@ -53,6 +54,7 @@ public class HomeActivity extends AppCompatActivity {
         Typeface typeface = Typeface.createFromAsset(getAssets(),"fonts/lemon_font.otf");
         read.setTypeface(typeface);
 
+        requestAppPermissions();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -72,7 +74,7 @@ public class HomeActivity extends AppCompatActivity {
         startActivity(dataIntent);
     }
     public void onClickContribute(View view){
-        Intent chooseIntent = new Intent(getApplicationContext(),ChooseActivity.class);
+        Intent chooseIntent = new Intent(getApplicationContext(),SignInCheck.class);
         startActivity(chooseIntent);
     }
     @Override
@@ -80,6 +82,26 @@ public class HomeActivity extends AppCompatActivity {
         Intent homeIntent = new Intent(Intent.ACTION_MAIN);
         homeIntent.addCategory(Intent.CATEGORY_HOME);
         startActivity(homeIntent);
+    }
+    private void requestAppPermissions(){
+        if(Build.VERSION.SDK_INT<Build.VERSION_CODES.LOLLIPOP){
+            return;
+        }
+        if(hasReadPermissions()&&hasWritePermissions()){
+            return;
+        }
+        ActivityCompat.requestPermissions(this,
+                new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                ,2);
+    }
+    private boolean hasReadPermissions(){
+        return (ContextCompat.checkSelfPermission(getBaseContext(),Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED);
+    }
+
+    private boolean hasWritePermissions(){
+        return (ContextCompat.checkSelfPermission(getBaseContext(),Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED);
     }
 
 }

@@ -3,10 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/contribute_data"
+        android:id="@+id/upload_data"
         android:icon="@android:drawable/ic_menu_edit"
-        android:title="Contribute" />
+        android:title="Upload file" />
     <item
-        android:id="@+id/signout_data"
-        android:title="Sign Out" />
+        android:id="@+id/data_help"
+        android:title="Help" />
 </menu>

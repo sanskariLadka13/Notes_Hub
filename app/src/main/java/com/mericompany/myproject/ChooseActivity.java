@@ -3,21 +3,28 @@ package com.mericompany.myproject;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,9 +41,11 @@ import com.google.firebase.storage.UploadTask;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ChooseActivity extends AppCompatActivity {
+import static com.mericompany.myproject.MyListAdapter.percent;
 
-     Intent intent ;
+public class ChooseActivity extends AppCompatActivity implements View.OnKeyListener,View.OnClickListener{
+
+     Intent intent, homeIntent;
      Uri selectedFile;
 
     final static int PICK_PDF_CODE = 2342;
@@ -48,7 +57,8 @@ public class ChooseActivity extends AppCompatActivity {
     TextView fileNameView;
     TextView showName,uploadPercent;
 
-    ImageView uploadButton;
+    ImageButton uploadButton;
+    TextView uploadText;
     ImageButton chooseButton;
 
     Spinner branchSpinner,semSpinner,batchSpinner,typeSpinner;
@@ -57,7 +67,8 @@ public class ChooseActivity extends AppCompatActivity {
     MySpinnerAdapter batchAdapter;
     MySpinnerAdapter semAdapter;
     MySpinnerAdapter typeAdapter;
-    ArrayAdapter<String> nameAdapter;
+
+    RelativeLayout chooseLayout;
 
     ArrayList<String> branch = new ArrayList<>();
     ArrayList<String> batch = new ArrayList<>();
@@ -66,6 +77,10 @@ public class ChooseActivity extends AppCompatActivity {
 
     String selectedBranch,selectedSem,selectedBatch,selectedType;
     HashMap fileDetail;
+
+    private NotificationManager mNotifyManager;
+    private NotificationCompat.Builder mBuilder;
+    int id ;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -84,17 +99,22 @@ public class ChooseActivity extends AppCompatActivity {
 
         fileDetail = new HashMap();
 
-        intent = new Intent(getApplicationContext(),DataActivity.class);
-
+        homeIntent = new Intent(getApplicationContext(),HomeActivity.class);
+        intent = getIntent();
         // getting firebase object...
         mStorageRefrence = FirebaseStorage.getInstance().getReference();
         mDatabaseRefrence = FirebaseDatabase.getInstance().getReference("uploads");
+
+        chooseLayout = findViewById(R.id.chooseLayout);
+        chooseLayout.setOnClickListener(this);
 
         fileNameView = findViewById(R.id.fileNameTextView);
         showName = findViewById(R.id.showName);
         chooseButton = findViewById(R.id.chooseFileButton);
 
-        uploadButton = findViewById(R.id.uploadButton);
+        uploadButton = findViewById(R.id.uploadButtonS);
+        uploadText = findViewById(R.id.uploading_text);
+
         uploadProgress = findViewById(R.id.uploadProgress);
         uploadPercent = findViewById(R.id.uploadPercent);
 
@@ -130,12 +150,17 @@ public class ChooseActivity extends AppCompatActivity {
         sem.add("10th");
         //====//
         batch.add("Select Batch");
+        batch.add("2k15");
         batch.add("2k16");
         batch.add("2k17");
         batch.add("2k18");
         batch.add("2k19");
         batch.add("2k20");
         batch.add("2k21");
+        batch.add("2k22");
+        batch.add("2k23");
+        batch.add("2k24");
+        batch.add("2k25");
 
         //===//
         type.add("Select Type");
@@ -147,28 +172,31 @@ public class ChooseActivity extends AppCompatActivity {
 
     }
 
-
     private void getPDF() {
 
         //creating an intent for file chooser
         Intent intent = new Intent();
         intent.setType("application/pdf");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        //intent.setAction(Intent.ACTION_APP_ERROR)
         startActivityForResult(Intent.createChooser(intent, "Select Picture"),PICK_PDF_CODE);
     }
 
-    private void uploadFile(Uri data) {
-        final String name = fileNameView.getText().toString() + System.currentTimeMillis() + ".pdf";
+    private void uploadFile(final Uri data) {
+        /***************************
+        // changes made + System.currentTimeMillis()
+         ***************************/
+        final String name = fileNameView.getText().toString()  + ".pdf";
         uploadProgress.setVisibility(View.VISIBLE);
         uploadPercent.setVisibility(View.VISIBLE);
         uploadProgress.setProgress(0);
+
+
         final StorageReference sRef = mStorageRefrence.child("uploads").child(selectedBatch).child(selectedSem).child(selectedBranch).child(name);
         sRef.putFile(data)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @SuppressWarnings("VisibleForTests")
                     @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
                         uploadProgress.setVisibility(View.GONE);
                         uploadPercent.setVisibility(View.GONE);
                         setButtonClickable(true);
@@ -176,16 +204,28 @@ public class ChooseActivity extends AppCompatActivity {
                         mStorageRefrence.child("uploads").child(selectedBatch).child(selectedSem).child(selectedBranch).child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
-                            fileDetail.put("fileName",selectedType+fileNameView.getText().toString());
+                            fileDetail.put("Email",intent.getStringExtra("Email"));
+                            fileDetail.put("Sender",intent.getStringExtra("Sender"));
+                            fileDetail.put("fileName",selectedType+fileNameView.getText().toString()+".pdf");
                             fileDetail.put("fileUrl",uri.toString());
+                            fileDetail.put("fileSize",taskSnapshot.getTotalByteCount());
+
+                                mNotifyManager.cancel(id);
+                                createNotification("File Uploaded Successfully");
+
                             FirebaseDatabase.getInstance().getReference().child("uploads").child(selectedBatch).child(selectedSem).child(selectedBranch).push().setValue(fileDetail);
-                            startActivity(intent);
+                            startActivity(homeIntent);
                             Log.i("download url",uri.toString());
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 setButtonClickable(true);
+
+                                mNotifyManager.cancel(id);
+                                createNotification("Uploading Failed");
+
+                                Toast.makeText(ChooseActivity.this, "Some error occurred, Try Again...", Toast.LENGTH_SHORT).show();
                                 e.printStackTrace();
                             }
                         });
@@ -196,7 +236,9 @@ public class ChooseActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
                         setButtonClickable(true);
-                        Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
+                        mNotifyManager.cancel(id);
+                        createNotification("Uploading Failed");
+                        Toast.makeText(ChooseActivity.this, "Some error occurred, Try Again...", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
@@ -206,6 +248,13 @@ public class ChooseActivity extends AppCompatActivity {
                         double progress =  (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
                         uploadPercent.setText((int)progress+"%");
                         uploadProgress.setProgress((int)progress);
+                        if(progress>0.5) {
+                            //notification
+                            mBuilder.setProgress(100, (int) progress, false)
+                                    .setContentText((int) progress + " %");
+                            mNotifyManager.notify(id, mBuilder.build());
+                        }
+
                         Log.i("progress",  progress+"%");
                     }
                 });
@@ -238,8 +287,9 @@ public class ChooseActivity extends AppCompatActivity {
             Toast.makeText(this, "Please select any file...", Toast.LENGTH_SHORT).show();
         }
         else {
-            uploadFile(selectedFile);
             setButtonClickable(false);
+            createNotification("Uploading ...");
+            uploadFile(selectedFile);
         }
     }
 
@@ -266,12 +316,29 @@ public class ChooseActivity extends AppCompatActivity {
 
     public void setButtonClickable(boolean lock){
 
+        if(!lock) showName.setInputType(InputType.TYPE_NULL);
+        else showName.setInputType(InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
+
+        if(!lock){
+            uploadText.setText("Uploading");
+        }
+        else uploadText.setText("Upload");
+
         showName.setClickable(lock);
+        showName.setEnabled(lock);
         batchSpinner.setClickable(lock);
+        batchSpinner.setEnabled(lock);
         semSpinner.setClickable(lock);
+        semSpinner.setEnabled(lock);
         branchSpinner.setClickable(lock);
+        branchSpinner.setEnabled(lock);
+        uploadText.setEnabled(lock);
+        uploadText.setClickable(lock);
         uploadButton.setClickable(lock);
+        uploadButton.setEnabled(lock);
         chooseButton.setClickable(lock);
+        chooseButton.setEnabled(lock);
+        typeSpinner.setEnabled(lock);
     }
 
     public void spinnerSetup(){
@@ -336,11 +403,11 @@ public class ChooseActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 switch (i){
-                    case 1:selectedType = "[Notes]";
+                    case 1:selectedType = "[Notes] ";
                         break;
-                    case 2:selectedType = "[Ques]";
+                    case 2:selectedType = "[Ques] ";
                         break;
-                    case 3:selectedType = "[Lab]";
+                    case 3:selectedType = "[Lab] ";
                         break;
                     default:selectedType = type.get(0);
                 }
@@ -353,4 +420,48 @@ public class ChooseActivity extends AppCompatActivity {
         });
 
     }
+
+    @Override
+    public boolean onKey(View view, int i, KeyEvent keyEvent) {
+        return false;
+    }
+
+    @Override
+    public void onClick(View view) {
+        if(view.getId() == chooseLayout.getId()){
+            InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(getWindow().getCurrentFocus().getWindowToken(),0);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent homeActivity = new Intent(getApplicationContext(), HomeActivity.class);
+        startActivity(homeActivity);
+    }
+
+    public void createNotification(String msg){
+
+        //Notification stuff
+        mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mBuilder = new NotificationCompat.Builder(this,"notify_001");
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            String channelId = "Your_channel_id";
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            mNotifyManager.createNotificationChannel(channel);
+            mBuilder.setChannelId(channelId);
+        }
+
+        mBuilder.setContentTitle(fileNameView.getText().toString() +".pdf")
+                .setContentText(msg)
+                .setSmallIcon(R.drawable.outbox)
+                .setOnlyAlertOnce(true);
+
+        mNotifyManager.notify(id,mBuilder.build());
+    }
+
 }

@@ -14,8 +14,8 @@
         android:layout_marginStart="28dp"
         android:layout_marginTop="35dp"
         android:clickable="true"
-        android:onClick="onClickRead"
-        app:srcCompat="@drawable/read" />
+        android:onClick="onClickDownload"
+        app:srcCompat="@drawable/get_book" />
 
     <ImageView
         android:id="@+id/imageViewDownloads"
@@ -27,8 +27,8 @@
         android:layout_marginTop="35dp"
         android:layout_marginEnd="20dp"
         android:clickable="true"
-        android:onClick="onClickDownload"
-        app:srcCompat="@drawable/get_book" />
+        android:onClick="onClickContribute"
+        app:srcCompat="@drawable/online_learning" />
 
     <ImageView
         android:id="@+id/imageViewContribute"
@@ -40,10 +40,10 @@
         android:layout_centerHorizontal="true"
         android:layout_marginStart="120dp"
         android:layout_marginTop="260dp"
-        android:layout_marginBottom="62dp"
+        android:layout_marginBottom="80dp"
         android:clickable="true"
-        android:onClick="onClickContribute"
-        app:srcCompat="@drawable/contribute" />
+        android:onClick="onClickRead"
+        app:srcCompat="@drawable/read" />
 
     <TextView
         android:id="@+id/textViewread"
@@ -52,10 +52,12 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_centerVertical="true"
-        android:layout_marginStart="41dp"
+        android:layout_marginStart="60dp"
         android:layout_marginTop="220dp"
+        android:clickable="true"
         android:fontFamily="@font/lemonfont"
-        android:text="Your Saved Notes"
+        android:onClick="onClickDownload"
+        android:text="e-Library"
         android:textColor="#000000"
         android:textSize="24sp" />
 
@@ -66,23 +68,27 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:layout_marginTop="220dp"
-        android:layout_marginEnd="41dp"
+        android:layout_marginTop="223dp"
+        android:layout_marginEnd="6dp"
+        android:clickable="true"
         android:fontFamily="@font/lemonfont"
-        android:text="Get From Library"
+        android:onClick="onClickContribute"
+        android:text="Upload Notes For Others"
         android:textColor="#000000"
         android:textSize="24sp" />
 
     <TextView
         android:id="@+id/textViewContribute"
-        android:layout_width="wrap_content"
+        android:layout_width="167dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginEnd="113dp"
-        android:layout_marginBottom="51dp"
+        android:layout_marginBottom="54dp"
         android:fontFamily="@font/lemonfont"
-        android:text="Upload Notes For Others"
+        android:onClick="onClickRead"
+        android:text="Your Saved Notes"
+        android:textAlignment="center"
         android:textColor="#000000"
         android:textSize="24sp" />
 </RelativeLayout>

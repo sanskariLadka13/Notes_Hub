@@ -23,7 +23,7 @@ public class PdfReader extends Activity implements OnPageChangeListener, OnLoadC
 
     PDFView pdfView;
     TextView header;
-    int pageNumber = 0;
+    int pageNumber ;
     String pdfFileName = "new file";
 
     protected void onCreate(Bundle savedInstanceState) {

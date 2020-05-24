@@ -21,10 +21,28 @@ public class MyListAdapter extends ArrayAdapter<String> {
     Integer pdfIcon;
     Integer downloadIcon;
     boolean isDownloadIcon;
+    public int size;
+
+
+    public ArrayList<View> viewGroup = new ArrayList<>();
+    public ArrayList<Integer> downloadLinkState = new ArrayList<>();
+    public static ArrayList<Integer> percent = new ArrayList<>();
+
+    TextView titleText;
+    ImageView pdfIconView;
+    TextView subtitleText;
+    ImageView downloadIconView;
+    ProgressBar progressBar;
+    TextView percentText;
+
+    public final int DOWNLOADING = 3,
+                DOWNLOAD_ERROR = 1,
+                DOWNLOAD_COMPLETE = 2,
+                DOWNLOAD_START = 0;
+
 
     public MyListAdapter(Activity context, ArrayList<String> title,ArrayList<String> subTitle, Integer pdfIcon,Integer downloadIcon ) {
         super(context, R.layout.customized, title);
-        // TODO Auto-generated constructor stub
 
         this.context=context;
         this.title=title;
@@ -32,49 +50,96 @@ public class MyListAdapter extends ArrayAdapter<String> {
         this.pdfIcon = pdfIcon;
         this.downloadIcon = downloadIcon;
         isDownloadIcon = true;
+        size = title.size();
+        updateLength(title.size());
+
     }
 
     public MyListAdapter(Activity context, ArrayList<String> title,ArrayList<String> subTitle, Integer pdfIcon) {
         super(context, R.layout.customized, title);
-        // TODO Auto-generated constructor stub
+
         this.context=context;
         this.title=title;
         this.subTitle=subTitle;
         this.pdfIcon = pdfIcon;
         isDownloadIcon = false;
+        size = title.size();
+        updateLength(title.size());
     }
 
 
     public View getView(int position, View view, ViewGroup parent) {
-
         LayoutInflater inflater=context.getLayoutInflater();
-        View rowView=view;//inflater.inflate(R.layout.customized, null,true);
+        //This thing seems to be very ordinary but
+        if(viewGroup.get(position)==null) {
+            Log.i("position",position+"");
+            viewGroup.set(position, inflater.inflate(R.layout.customized, null, true));
+        }
 
-        if(rowView == null) {
-            rowView=inflater.inflate(R.layout.customized, null,true);
-            TextView titleText = rowView.findViewById(R.id.title);
-            ImageView imageView = rowView.findViewById(R.id.icon);
-            TextView subtitleText = rowView.findViewById(R.id.subtitle);
-            ImageView downloadIconView = rowView.findViewById(R.id.downloadIcon);
+        titleText           =   viewGroup.get(position).findViewById(R.id.title);
+        pdfIconView          = viewGroup.get(position).findViewById(R.id.icon);
+        subtitleText       = viewGroup.get(position).findViewById(R.id.subtitle);
+        downloadIconView = viewGroup.get(position).findViewById(R.id.downloadIcon);
+        progressBar     = viewGroup.get(position).findViewById(R.id.progressBarDownload);
+        percentText        = viewGroup.get(position).findViewById(R.id.downloadPercent);
 
-            if (isDownloadIcon == true) {
-                downloadIconView.setVisibility(View.VISIBLE);
-                downloadIconView.setImageResource(downloadIcon);
-            } else {
-                downloadIconView.setVisibility(View.INVISIBLE);
+
+        if (isDownloadIcon == true) {
+            downloadIconView.setVisibility(View.VISIBLE);
+            switch (downloadLinkState.get(position)){
+                case DOWNLOAD_START:
+                    downloadIconView.setImageResource(R.drawable.download_icon);
+                    break;
+                case DOWNLOADING:
+                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.setProgress(percent.get(position));
+                    percentText.setText(percent.get(position)+" %");
+                    downloadIconView.setImageResource(R.drawable.pause);
+                    break;
+                case DOWNLOAD_ERROR:
+                    downloadIconView.setImageResource(R.drawable.reload);
+                    break;
+                case DOWNLOAD_COMPLETE:
+                    downloadIconView.setImageResource(R.drawable.complete);
+                    break;
             }
-            titleText.setText(title.get(position));
-            imageView.setImageResource(pdfIcon);
-            subtitleText.setText(subTitle.get(position));
         }
-        else {
-            Log.i("errrrrr","ffffffffffffffffffffffffffffffffffffffff");
-        }
-        return rowView;
 
+        titleText.setText(title.get(position));
+        pdfIconView.setImageResource(pdfIcon);
+        subtitleText.setText(subTitle.get(position));
+
+    //return rowView;
+        return viewGroup.get(position);
     };
 
-    private static class ViewHolder{
-        
+    public void setDownloadState(int i,int state){
+            downloadLinkState.set(i,state);
+        }
+
+    public void updateFileName_Size(ArrayList<String> fileName,ArrayList<String> fileSize){
+        title.clear();
+        title.addAll(fileName);
+        subTitle.clear();
+        subTitle.addAll(fileSize);
+        updateLength(fileName.size());
+        this.notifyDataSetChanged();
     }
+
+    public void updateLength(int size){
+            this.size = size;
+            viewGroup.clear();
+        for (int i = 0; i < size; ++i) {
+            viewGroup.add(null);
+        }
+            if(isDownloadIcon) {
+                percent.clear();
+                for (int i = 0; i < size; ++i) {
+                    downloadLinkState.add(DOWNLOAD_START);
+                    percent.add(0);
+                }
+                Log.i("sixe",viewGroup.size()+"");
+            }
+    }
+
 }

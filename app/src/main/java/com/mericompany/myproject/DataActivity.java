@@ -9,11 +9,14 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -28,6 +31,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 
+import org.apache.http.params.HttpParams;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class DataActivity extends AppCompatActivity {
@@ -44,17 +51,19 @@ public class DataActivity extends AppCompatActivity {
 
     ListView fileListView;
     ProgressBar progressBar;
-    TextView noFileText;
-    ImageView lookingIcon;
+    TextView noFileText,gangsterText;
+    ImageView lookingIcon,gangsterImage;
     ImageView noWifi;
     TextView noWifiText;
+    TextView help;
 
     FirebaseAuth mAuth;
+
+    MyListAdapter adapter;
 
     static String selectedBranch,selectedSem,selectedBatch,selectedFileName;
 
     Spinner branchSpinner,semSpinner,batchSpinner;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,11 +78,28 @@ public class DataActivity extends AppCompatActivity {
         lookingIcon = findViewById(R.id.searching_icon);
         noWifi = findViewById(R.id.noWifi);
         noWifiText = findViewById(R.id.noWifiText);
+        gangsterImage = findViewById(R.id.gangsterImage);
+        gangsterText = findViewById(R.id.gangsterText);
+        help = findViewById(R.id.help_dataText);
 
+        help.setVisibility(View.INVISIBLE);
+
+        adjustHeight();
 
         setSpinnerList();
 
         spinnerSetup();
+
+        fileListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent webViewIntent = new Intent(getApplicationContext(),WebPdfView.class);
+                webViewIntent.putExtra("fileName",fileName.get(i));
+                webViewIntent.putExtra("directory","uploads/"+selectedBatch+"/"+selectedSem+"/"+selectedBranch+"/");
+                startActivity(webViewIntent);
+                return true;
+            }
+        });
 
         fileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -83,10 +109,11 @@ public class DataActivity extends AppCompatActivity {
                 //readerIntent.setData(Uri.parse(fileUrl.get(i)));
                 //startActivity(readerIntent);
 
-                view.setClickable(false);
-                selectedFileName = fileName.get(i) + ".pdf";
-                DownloadingTask downLoader = new DownloadingTask(DataActivity.this,view);
-                downLoader.execute(fileUrl.get(i));
+                if(adapter.downloadLinkState.get(i) == adapter.DOWNLOAD_START  || adapter.downloadLinkState.get(i) == adapter.DOWNLOAD_ERROR) {
+                    selectedFileName = fileName.get(i);
+                    DownloadingTask downLoader = new DownloadingTask(DataActivity.this, view,i,adapter);
+                    downLoader.execute(fileUrl.get(i));
+                }
             }
         });
     }
@@ -102,13 +129,12 @@ public class DataActivity extends AppCompatActivity {
         super.onOptionsItemSelected(item);
 
         switch (item.getItemId()){
-            case R.id.signout_data :
-                mAuth.signOut();
-                Intent loginActivity = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(loginActivity);
+            case R.id.data_help :
+                Intent helpActivity = new Intent(getApplicationContext(), Help.class);
+                startActivity(helpActivity);
                 return true;
-            case R.id.contribute_data :
-                Intent uploadIntent = new Intent(getApplicationContext(), ChooseActivity.class);
+            case R.id.upload_data :
+                Intent uploadIntent = new Intent(getApplicationContext(), SignInCheck.class);
                 startActivity(uploadIntent);
                 return true;
             default:
@@ -116,16 +142,34 @@ public class DataActivity extends AppCompatActivity {
         }
     }
 
-
     public void showList(View view){
+        help.setVisibility(View.INVISIBLE);
         if(isConnected()) {
             setWifiVisibility(false);
-                if (selectedBatch == batch.get(0))
-                    Toast.makeText(this, "Please select any batch...", Toast.LENGTH_SHORT).show();
-                else if (selectedSem == sem.get(0))
-                    Toast.makeText(this, "Please select any sem...", Toast.LENGTH_SHORT).show();
-                else if (selectedBranch == branch.get(0))
-                    Toast.makeText(this, "Please select any branch...", Toast.LENGTH_SHORT).show();
+
+            fileName.clear();
+            fileUrl.clear();
+            fileSize.clear();
+            adapter = new MyListAdapter(DataActivity.this,fileName,fileSize,R.drawable.new_pdf_icon,R.drawable.download_icon);
+            fileListView.setAdapter(adapter);
+
+            setGangstaMessage(false,"");
+            String warning;
+            if(selectedBatch == batch.get(0)) {
+                warning = "Please select any batch...";
+                Toast.makeText(this, warning, Toast.LENGTH_SHORT).show();
+                setGangstaMessage(true,warning);
+            }
+            else if(selectedSem == sem.get(0)) {
+                warning = "Please select any sem...";
+                Toast.makeText(this, warning, Toast.LENGTH_SHORT).show();
+                setGangstaMessage(true,warning);
+            }
+            else if(selectedBranch == branch.get(0)){
+                warning = "Please select any branch...";
+                Toast.makeText(this, warning, Toast.LENGTH_SHORT).show();
+                setGangstaMessage(true,warning);
+            }
                 else {
                     getFilesFromDatabase();
                 }
@@ -139,29 +183,28 @@ public class DataActivity extends AppCompatActivity {
     public void getFilesFromDatabase(){
         setSearchingVisibility(true);
         try {
-            fileName.clear();
-            fileUrl.clear();
-            fileSize.clear();
-            MyListAdapter adapter = new MyListAdapter(DataActivity.this,fileName,fileSize,R.drawable.new_pdf_icon,R.drawable.download_icon);
-            fileListView.setAdapter(adapter);
-
-            Log.i("bgfgfh",FirebaseDatabase.getInstance().getReference().child("uploads").child(selectedBatch).child(selectedSem).child(selectedBranch).toString());
 
             FirebaseDatabase.getInstance().getReference().child("uploads").child(selectedBatch).child(selectedSem).child(selectedBranch).addChildEventListener(new ChildEventListener() {
 
                 @Override
                 public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                     try {
+                        help.setVisibility(View.VISIBLE);
                         fileName.add(dataSnapshot.child("fileName").getValue().toString());
                         fileUrl.add(dataSnapshot.child("fileUrl").getValue().toString());
-                        fileSize.add("3 MB");
-                        //TODO file size needs to be added
-                        // automaticlly refresser to default view..
+                        long len = (long)dataSnapshot.child("fileSize").getValue();
+                        if(( len/1048576.0)>1.0) {
+                            fileSize.add(String.format("%.2f", len / (1048576.0)) + " MB");
+                        }
+                        else {
+                            fileSize.add(String.format("%.2f", len / (1024.0)) + " KB");
+                        }
                         setSearchingVisibility(false);
-                        MyListAdapter adapter = new MyListAdapter(DataActivity.this,fileName,fileSize,R.drawable.new_pdf_icon,R.drawable.download_icon);
-                        fileListView.setAdapter(adapter);
+
+                        adapter.updateLength(fileName.size());
+                        adapter.notifyDataSetChanged();
                     } catch (Exception e) {
-                        Log.i("errrrrrr","errorr 1");
+                        help.setVisibility(View.INVISIBLE);
                         e.printStackTrace();
                         Toast.makeText(DataActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                     }
@@ -177,13 +220,13 @@ public class DataActivity extends AppCompatActivity {
                 public void onCancelled(@NonNull DatabaseError databaseError) {Log.i("checkk","error"); }
             });
         }catch (Exception e){
-            Log.i("errrrrrr","errorr 2");
             e.printStackTrace();
-            //TODO some error occurred...
+            setWifiVisibility(isConnected());
             setSearchingVisibility(false);
             Toast.makeText(this, "Some error occurred...", Toast.LENGTH_SHORT).show();
         }
     }
+
     public void setSpinnerList(){
 
         // adding branch to the spinner
@@ -209,30 +252,50 @@ public class DataActivity extends AppCompatActivity {
         sem.add("10th");
         //====//
         batch.add("Select Batch");
+        batch.add("2k15");
         batch.add("2k16");
         batch.add("2k17");
         batch.add("2k18");
         batch.add("2k19");
         batch.add("2k20");
         batch.add("2k21");
+        batch.add("2k22");
+        batch.add("2k23");
+        batch.add("2k24");
+        batch.add("2k25");
         //========//
 
     }
+
     public  static String getDirectory(){
         return ".uploads/"+selectedBatch + "/" + selectedSem + "/" +selectedBranch;
     }
+
     public  static String getFileName(){
         return selectedFileName;
     }
+
     public boolean isConnected(){
 
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState()== NetworkInfo.State.CONNECTED||
-            connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()==NetworkInfo.State.CONNECTED){
+        if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState()!= NetworkInfo.State.CONNECTED&&
+            connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()!=NetworkInfo.State.CONNECTED){
+            return false;
+        }
+        else {
+            try {
+                String link = "";
+                URL url = new URL(link);//Create Download URl
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();//Open Url Connection
+                urlConnection.setConnectTimeout(6000);
+
+            } catch (Exception e) {
+
+            }
             return true;
         }
-        else return false;
     }
+
     public void setWifiVisibility(boolean visible){
         if(visible){
             noWifiText.setVisibility(View.VISIBLE);
@@ -243,6 +306,7 @@ public class DataActivity extends AppCompatActivity {
             noWifi.setVisibility(View.INVISIBLE);
         }
     }
+
     public void setSearchingVisibility(boolean visible){
         if(visible){
             progressBar.setVisibility(View.VISIBLE);
@@ -309,4 +373,37 @@ public class DataActivity extends AppCompatActivity {
         });
 
     }
+
+    public void adjustHeight(){
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int heightPixels = metrics.heightPixels;
+        int widthPixels = metrics.widthPixels;
+        int density = (int) getResources().getDisplayMetrics().density;
+
+        ViewGroup.LayoutParams params = fileListView.getLayoutParams();
+        params.height = heightPixels - (300*density);
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent homeIntent = new Intent(getApplicationContext(),HomeActivity.class);
+        startActivity(homeIntent);
+    }
+
+    public void setGangstaMessage(boolean visible,String message){
+        if(visible){
+            gangsterImage.setVisibility(View.VISIBLE);
+            gangsterText.setVisibility(View.VISIBLE);
+            gangsterText.setText(message);
+        }
+        else {
+            gangsterImage.setVisibility(View.INVISIBLE);
+            gangsterText.setVisibility(View.INVISIBLE);
+        }
+    }
+
 }

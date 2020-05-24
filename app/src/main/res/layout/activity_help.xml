@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Help">
+
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="80dp"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/rounded_corner"
+        android:scrollbarDefaultDelayBeforeFade="1"
+        android:scrollbarFadeDuration="1"
+        android:scrollbarSize="4dp"
+        android:scrollbarThumbVertical="?android:attr/colorForegroundInverse">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/textViews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:text=" 1) Access your saved notes -"
+                android:textColor="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textViewsr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:paddingStart="20dp"
+                android:text="To access your saved notes, first you need to
+                download them from 'e-library' section.
+                Once you have downloaded, you can easily go
+                to 'Your saved notes' section and select the
+                batch, semester, branch and then click 'Load'
+                button.To open the file simply just tap on the file.\n"
+                android:textColor="#595454"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textViewshh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:text=" 2) Download from e-Library -"
+                android:textColor="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textVijewsr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:paddingStart="20dp"
+                android:text="First you need to go to 'e-Library' section,then
+                choose the batch,branch,semester in which
+                you want to look for notes.Then Click the 'Load'
+                button.To download the desired file just tap on
+                the file and the dwonload will get started.\n(Make sure you're connected with Internet)\n"
+                android:textColor="#595454"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textVihhewshh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:text=" 3) Upload files for other -"
+                android:textColor="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textVivjewsr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:paddingStart="20dp"
+                android:text="When you'll select the 'upload for ohter' section
+a Sign in screen will be prompt , to continue you have to sign in using your
+google account(only beacause of authentic purpose).Once you have completed
+signing process you'll reach the main upload screen.There you need to select the file
+you're going to upload.After selecting the file, give your file some informative name(so that
+user can have a idea of file by reading the name of the file).
+Then select the batch,semester,branch and type of the file.And then simply click the
+upload button\n"
+                android:textColor="#595454"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/texgtViews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:text=" 4) Delete your Saved file -"
+                android:textColor="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/texjtViewsr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:paddingStart="20dp"
+                android:text="To delete a saved file,just long press that file then
+a confirmation dialog box will appear ,click 'Yes' to delete that file.\n"
+                android:textColor="#595454"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/texgtffViews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:text=" 5) Open file without downloading -"
+                android:textColor="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/thgexjtViewsr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lemonfont"
+                android:paddingStart="20dp"
+                android:text="To open file from 'e-library' without
+                downloading it,simply long press that file.It will open in new screen without downloading it.\n"
+                android:textColor="#595454"
+                android:textSize="24sp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/lemonfont"
+        android:text="How to"
+        android:textColor="#000000"
+        android:textSize="30sp" />
+</RelativeLayout>

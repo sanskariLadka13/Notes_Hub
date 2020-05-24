@@ -71,13 +71,40 @@
     <ListView
         android:id="@+id/dataList"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="match_parent"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="50dp"
         android:layout_marginRight="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="190dp"
         android:background="@drawable/rounded_corner">
-
     </ListView>
+
+
+
+    <ImageView
+        android:id="@+id/gangsterImage"
+        android:layout_width="150dp"
+        android:layout_height="120dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="120dp"
+        android:visibility="invisible"
+        app:srcCompat="@drawable/gangster" />
+
+    <TextView
+        android:id="@+id/gangsterText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="130dp"
+        android:layout_marginTop="250dp"
+        android:fontFamily="@font/lemonfont"
+        android:text=""
+        android:visibility="invisible"
+        android:textColor="#020202"
+        android:textSize="24sp" />
 
 
     <ImageView
@@ -143,6 +170,31 @@
         android:textSize="20dp"
         android:text="Check your Internet Connection"
         android:fontFamily="@font/lemonfont"/>
+
+    <TextView
+        android:id="@+id/textHeaderData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="17dp"
+        android:fontFamily="@font/lemonfont"
+        android:text="e-Library"
+        android:textColor="#000000"
+        android:textSize="24dp" />
+
+    <TextView
+        android:id="@+id/help_dataText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="165dp"
+        android:fontFamily="@font/lemonfont"
+        android:text="( Long press file to open it without downloading )"
+        android:textColor="#838282"
+        android:textSize="24sp" />
 
 
 </RelativeLayout>

@@ -6,9 +6,7 @@
         android:id="@+id/addDocs"
         android:title="Add Docs" />
     <item
-        android:id="@+id/contribute"
-        android:title="Contribute" />
-    <item
-        android:id="@+id/logout"
-        android:title="LogOut" />
+        android:id="@+id/fie_help"
+        android:title="Help" />
+
 </menu>

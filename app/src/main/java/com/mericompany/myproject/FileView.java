@@ -1,20 +1,26 @@
 package com.mericompany.myproject;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -51,6 +57,7 @@ public class FileView extends AppCompatActivity {
     ImageView noFileFace;
     ImageView gangsterImage;
     TextView gangsterText;
+    TextView help;
 
     Integer image;
 
@@ -72,14 +79,9 @@ public class FileView extends AppCompatActivity {
                 Intent dataActivity = new Intent(getApplicationContext(), DataActivity.class);
                 startActivity(dataActivity);
                 return true;
-            case R.id.logout :
-                mAuth.signOut();
-                Intent loginActivity = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(loginActivity);
-                return true;
-            case R.id.contribute :
-                Intent chooseIntent = new Intent(getApplicationContext(), ChooseActivity.class);
-                startActivity(chooseIntent);
+            case R.id.fie_help :
+                Intent helpIntent = new Intent(getApplicationContext(), Help.class);
+                startActivity(helpIntent);
                 return true;
             default:
                 return true;
@@ -108,6 +110,11 @@ public class FileView extends AppCompatActivity {
         gangsterText = findViewById(R.id.gangsterText);
         list = findViewById(R.id.list);
         image = R.drawable.new_pdf_icon;
+        help = findViewById(R.id.help_fileText);
+        help.setVisibility(View.INVISIBLE);
+
+
+        adjustHeight();
 
         setSpinnerList();
         setupSpinner();
@@ -124,11 +131,25 @@ public class FileView extends AppCompatActivity {
         list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                ImageView delete = view.findViewById(R.id.downloadIcon);
-                delete.setVisibility(View.VISIBLE);
-                delete.setImageResource(R.drawable.complete);
-                File directory = new File(filePath.get(i));
-                //directory.getAbsoluteFile().delete();
+                final File directory = new File(filePath.get(i));
+                final int pos = i;
+                new AlertDialog.Builder(FileView.this)
+                        .setIcon(R.drawable.delete)
+                        .setTitle("Deleting this file")
+                        .setMessage("Are you sure")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                directory.getAbsoluteFile().delete();
+                                fileName.remove(pos);
+                                filePath.remove(pos);
+                                fileSize.remove(pos);
+                                adapter.notifyDataSetChanged();
+                            }
+                        })
+                        .setNegativeButton("No",null)
+                        .show();
+
                 return true;
             }
         });
@@ -137,10 +158,14 @@ public class FileView extends AppCompatActivity {
 
     public void onClickLoadFile(View view){
         setNoFileVisibility(false);
+        help.setVisibility(View.INVISIBLE);
         fileName.clear();
         filePath.clear();
         fileSize.clear();
+
         adapter=new MyListAdapter(this, fileName, fileSize,image);
+        list.setAdapter(adapter);
+
         setGangstaMessage(false,"");
         String warning;
         if(selectedBatch == batch.get(0)) {
@@ -177,7 +202,11 @@ public class FileView extends AppCompatActivity {
 
         File directory = new File(path);
         if(directory.exists()) {
+            help.setVisibility(View.VISIBLE);
             File[] files = directory.listFiles();
+
+            if(files.length<=0) setNoFileVisibility(true);
+
             for (int i = 0; i < files.length; i++) {
                 Log.d("Files", "FileName: " + files[i].getName());
                 Log.d("Files", "FileName: " + files[i].getAbsolutePath());
@@ -193,11 +222,10 @@ public class FileView extends AppCompatActivity {
         }
         else{
             setNoFileVisibility(true);
-            Toast.makeText(this, "Nothing's there...", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Nothing's there...", Toast.LENGTH_SHORT).show();
         }
-        ///////////////////////////////////////////////////////////
-        adapter=new MyListAdapter(this, fileName, fileSize,image);
-        list.setAdapter(adapter);
+        adapter.updateLength(fileName.size());
+        adapter.notifyDataSetChanged();
     }
 
     public  void setSpinnerList(){
@@ -224,16 +252,22 @@ public class FileView extends AppCompatActivity {
         sem.add("10th");
         //====//
         batch.add("Select Batch");
+        batch.add("2k15");
         batch.add("2k16");
         batch.add("2k17");
         batch.add("2k18");
         batch.add("2k19");
         batch.add("2k20");
         batch.add("2k21");
+        batch.add("2k22");
+        batch.add("2k23");
+        batch.add("2k24");
+        batch.add("2k25");
         //==//
 
 
     }
+
     public void setNoFileVisibility(boolean visible){
         if(visible){
             noFileText.setVisibility(View.VISIBLE);
@@ -245,6 +279,7 @@ public class FileView extends AppCompatActivity {
 
         }
     }
+
     public void setGangstaMessage(boolean visible,String message){
         if(visible){
             gangsterImage.setVisibility(View.VISIBLE);
@@ -305,6 +340,19 @@ public class FileView extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
+
+    }
+
+    public void adjustHeight(){
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int heightPixels = metrics.heightPixels;
+        int widthPixels = metrics.widthPixels;
+        int density = (int) getResources().getDisplayMetrics().density;
+
+        ViewGroup.LayoutParams params = list.getLayoutParams();
+        params.height = heightPixels - (300*density);
 
     }
 
