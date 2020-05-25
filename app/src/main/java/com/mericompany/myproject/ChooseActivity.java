@@ -60,6 +60,7 @@ public class ChooseActivity extends AppCompatActivity implements View.OnKeyListe
     ImageButton uploadButton;
     TextView uploadText;
     ImageButton chooseButton;
+    TextView chooseText;
 
     Spinner branchSpinner,semSpinner,batchSpinner,typeSpinner;
 
@@ -111,6 +112,7 @@ public class ChooseActivity extends AppCompatActivity implements View.OnKeyListe
         fileNameView = findViewById(R.id.fileNameTextView);
         showName = findViewById(R.id.showName);
         chooseButton = findViewById(R.id.chooseFileButton);
+        chooseText = findViewById(R.id.chooseFileTextView);
 
         uploadButton = findViewById(R.id.uploadButtonS);
         uploadText = findViewById(R.id.uploading_text);
@@ -332,6 +334,8 @@ public class ChooseActivity extends AppCompatActivity implements View.OnKeyListe
         semSpinner.setEnabled(lock);
         branchSpinner.setClickable(lock);
         branchSpinner.setEnabled(lock);
+        chooseText.setEnabled(lock);
+        chooseText.setClickable(lock);
         uploadText.setEnabled(lock);
         uploadText.setClickable(lock);
         uploadButton.setClickable(lock);
